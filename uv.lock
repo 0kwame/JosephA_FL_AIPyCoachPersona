@@ -33,7 +33,7 @@ wheels = [
 ]
 
 [[package]]
-name = "joseph-ai-py-coach-persona"
+name = "joseph-a-ai-py-coach-persona"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
