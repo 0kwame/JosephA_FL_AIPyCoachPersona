@@ -1,62 +1,18 @@
 import random
+from typing import List, Dict, Any
 from repository import QuestionRepository
-
-# -------------------------------
-# Helper function: Levenshtein distance
-# -------------------------------
-def levenshtein_distance(s1, s2):
-    len_s1, len_s2 = len(s1), len(s2)
-    dp = [[0] * (len_s2 + 1) for _ in range(len_s1 + 1)]
-
-    for i in range(len_s1 + 1):
-        dp[i][0] = i
-    for j in range(len_s2 + 1):
-        dp[0][j] = j
-
-    for i in range(1, len_s1 + 1):
-        for j in range(1, len_s2 + 1):
-            if s1[i - 1].lower() == s2[j - 1].lower():
-                cost = 0
-            else:
-                cost = 1
-            dp[i][j] = min(
-                dp[i - 1][j] + 1,      # deletion
-                dp[i][j - 1] + 1,      # insertion
-                dp[i - 1][j - 1] + cost  # substitution
-            )
-
-    return dp[len_s1][len_s2]
-
-def calculate_score(user_answer, correct_answer):
-    distance = levenshtein_distance(user_answer, correct_answer)
-    length = max(len(correct_answer), 1)  # avoid division by zero
-    normalized_distance = distance / length
-
-    if normalized_distance == 0:
-        return 5
-    elif normalized_distance <= 0.2:
-        return 4
-    elif normalized_distance <= 0.4:
-        return 3
-    elif normalized_distance <= 0.6:
-        return 2
-    elif normalized_distance <= 0.8:
-        return 1
-    else:
-        return 0
-
-
+from services.evaluation import EvaluationService
+from services.reporting import ReportService # Assuming you save the above class here
 
 class Questionnaire:
     def __init__(self):
         self.question_repo = QuestionRepository()
 
     def get_all_questions(self):
-        dataset = self.question_repo.questions
+        topics = self.question_repo.questions
         all_questions = []
 
-        # Flatten nested topics → qa_pairs
-        for topic in dataset.get("topics", []):
+        for topic in topics:
             topic_id = topic.get("topic_id", "UnknownTopic")
             topic_name = topic.get("topic", "Unknown Topic")
 
@@ -78,37 +34,56 @@ class Questionnaire:
         return all_questions
 
 
-def run_questionnaire(questions):
-    # Shuffle randomly
+def run_questionnaire(questions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     random.shuffle(questions)
-    answers = []
+    user_responses = []
+
+    print("📝 Starting the questionnaire. Your answers will be evaluated at the end.")
+    print("----------------------------------------------------------------------")
 
     for idx, q in enumerate(questions, start=1):
         print(f"Q{idx} [{q['topic_name']}]: {q['question_text']}")
         answer = input("Your answer: ")
 
-        # Compute Levenshtein distance
-        distance = calculate_score(answer, q["answer_text"])
-
-        answers.append({
+        user_responses.append({
             "question_id": q["question_id"],
             "question_text": q["question_text"],
+            "topic_name": q["topic_name"],  # Add topic name for the report
             "user_answer": answer,
-            "correct_answer": q["answer_text"],
-            "levenshtein_distance": distance
+            "correct_answer": q["answer_text"]
         })
 
-        print(f"✅ Recorded your answer: {answer}")
-        print(f"📏 Distance from correct answer: {distance}\n")
+        print("✅ Answer recorded.\n")
 
-        # Stop after at least 5 questions if user quits
         if idx >= 5:
             cont = input("Press Enter to continue or type 'q' to quit: ")
             if cont.lower() == "q":
                 print("Exiting questionnaire...")
                 break
 
-    return answers
+    # 1. Evaluate all answers using the EvaluationService
+    print("\n\n📊 Questionnaire complete! Here are your results:")
+    print("---------------------------------------------------")
+    
+    evaluation_service = EvaluationService()
+    final_evaluation = evaluation_service.evaluate_answers(user_responses)
+
+    # 2. Display the detailed and summary results
+    for result in final_evaluation["detailed_results"]:
+        print(f"Question: {result['question_text']}")
+        print(f"Your Answer: {result['user_answer']}")
+        print(f"Correct Answer: {result['correct_answer']}")
+        print(f"Score: {result['score']}/5\n")
+    
+    summary = final_evaluation["summary"]
+    print(f"✨ Total Score: {summary['total_score']} out of {summary['max_possible_score']}")
+    print(f"🌟 Average Score per Question: {summary['average_score_per_question']}/5")
+    
+    # 3. Save the report using the ReportService
+    report_service = ReportService()
+    report_service.generate_report(final_evaluation, file_format="json")
+
+    return user_responses
 
 
 if __name__ == "__main__":
