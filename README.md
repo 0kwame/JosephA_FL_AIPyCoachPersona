@@ -64,3 +64,4 @@ The core functionality of the bot includes:
 - The importance of separating concerns by using different services (e.g., an `EvaluationService` for scoring and a `ReportService` for data persistence).
 - How to structure and parse data from a **JSON file** to serve as a dynamic question bank.
 - The process of generating a structured summary report that provides detailed feedback and improvement tips to users.
+- How to use the Strategy Pattern to create more flexible and maintainable software architecture

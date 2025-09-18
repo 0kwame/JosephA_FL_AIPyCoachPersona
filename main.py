@@ -40,7 +40,6 @@ def play_audio(filepath: Path):
     except Exception as e:
         print(f"⚠️ Could not play audio {filepath}: {e}")
 
-
 def main():
     # Load environment variables from .env
     load_dotenv(dotenv_path=Path(__file__).parent / ".env")
@@ -61,8 +60,12 @@ def main():
     bot = GoogleGeminiInterviewBot(api_key=api_key, answer_bank=answer_bank)
     interview_service = InterviewService(bot=bot, answer_bank=answer_bank)
 
+    # Ensure audio directory exists
+    AUDIO_DIR = Path("media/audio")
+    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+
     # Candidate ID
-    candidate_id = input("Enter candidate id: ")
+    candidate_id = input("Enter candidate id: ").strip()
     user_responses = []
 
     for idx, q in enumerate(questions_data, start=1):
@@ -73,7 +76,7 @@ def main():
         print(f"\nQ{idx} [{topic_name}]: {question_text}")
 
         # --- TTS: read question aloud ---
-        tts_path = Path(f"question_{idx}.mp3")
+        tts_path = AUDIO_DIR / f"{candidate_id}_question_{idx}.mp3"
         interview_service.bot.ask_question(question_text, tts_path)
 
         if tts_path.exists():
@@ -82,7 +85,7 @@ def main():
             print("⚠️ No audio file generated for this question.")
 
         # --- Record user answer ---
-        answer_audio_path = Path(f"answer_{idx}.wav")
+        answer_audio_path = AUDIO_DIR / f"{candidate_id}_answer_{idx}.wav"
         record_audio(answer_audio_path, duration=10)  # record 10 sec answer
 
         # --- STT: transcribe user answer ---
@@ -129,7 +132,6 @@ def main():
     # Save report
     report_service = ReportService()
     report_service.generate_report(final_evaluation, file_format="json")
-
 
 if __name__ == "__main__":
     main()
