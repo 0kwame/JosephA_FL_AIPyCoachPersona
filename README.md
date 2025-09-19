@@ -65,3 +65,4 @@ The core functionality of the bot includes:
 - How to structure and parse data from a **JSON file** to serve as a dynamic question bank.
 - The process of generating a structured summary report that provides detailed feedback and improvement tips to users.
 - How to use the Strategy Pattern to create more flexible and maintainable software architecture
+- How to design a fallback mechanism where Levenshtein-based evaluation is used if the primary Gemini-based evaluation fails (e.g., due to network or parsing errors).
