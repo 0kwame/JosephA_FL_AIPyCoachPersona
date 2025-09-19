@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import google.generativeai as genai
 from google.cloud import texttospeech, speech
+from services.evaluation import EvaluationServiceStrategy
+from typing import List, Dict, Any
 
 
 # --- Strategy Interface ---
@@ -23,10 +25,9 @@ class InterviewBotStrategy(ABC):
         pass
 
     @abstractmethod
-    def evaluate_answer(self, user_answer: str, reference_answer: str) -> dict:
-        """Compare the user's answer to the reference answer."""
+    def evaluate_answers(self, responses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Compare the user's answers to the reference answers."""
         pass
-
 
 # --- Hidden Services ---
 class GoogleTTSService:
@@ -112,7 +113,7 @@ class GoogleSTTService:
 class GeminiEvaluator:
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key) # type: ignore
-        self.model = genai.GenerativeModel("gemini-1.5-flash") # type: ignore
+        self.model = genai.GenerativeModel("gemini-2.5-flash-lite") # type: ignore
 
     def evaluate(self, user_answer: str, reference_answer: str) -> dict:
         prompt = f"""
@@ -124,44 +125,64 @@ class GeminiEvaluator:
         response = self.model.generate_content(prompt)
         return {"evaluation": response.text}
 
+from pathlib import Path
+from typing import List, Dict, Any
 
-# --- Google/Gemini Strategy ---
 class GoogleGeminiInterviewBot(InterviewBotStrategy):
-    def __init__(self, api_key: str, answer_bank: dict):
+    def __init__(self, evaluation_strategy: EvaluationServiceStrategy, answer_bank: dict):
+        self.strategy = evaluation_strategy
+        self.answer_bank = answer_bank
+        # TTS/STT services remain the same
         self.tts = GoogleTTSService()
         self.stt = GoogleSTTService()
-        self.evaluator = GeminiEvaluator(api_key)
-        self.answer_bank = answer_bank
-
+    
     def ask_question(self, question: str, speech_file_path: Path):
         self.tts.synthesize(question, speech_file_path)
 
     def transcribe_answer(self, audio_file_path: Path) -> str:
         return self.stt.transcribe(audio_file_path)
 
-    def evaluate_answer(self, user_answer: str, reference_answer: str) -> dict:
-        return self.evaluator.evaluate(user_answer, reference_answer)
+    def evaluate_answers(self, responses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Delegate to the chosen evaluation strategy.
+        responses = [
+            {"user_answer": "...", "correct_answer": "...", "question_id": "...", ...}
+        ]
+        """
+        return self.strategy.evaluate_answers(responses)
 
-    def conduct_interview(self, candidate_id: str, questions: list) -> dict:
-        print(f"Starting Google/Gemini interview with {candidate_id}...")
-        results = {}
+    def conduct_interview(self, candidate_id: str, questions: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Run through all questions, record answers, and evaluate.
+        `questions` should be a list of dicts with keys: question_id, question_text, topic_name
+        """
+        responses = []
 
-        for i, question in enumerate(questions, start=1):
-            print(f"\nQ{i}: {question}")
+        for i, q in enumerate(questions, start=1):
+            question_id = q["question_id"]
+            question_text = q["question_text"]
+            topic_name = q.get("topic_name", "General")
 
-            # Ask
-            speech_path = Path(f"question_{i}.mp3")
-            self.ask_question(question, speech_path)
+            # --- TTS ---
+            self.ask_question(question_text, Path(f"question_{i}.mp3"))
 
-            # Transcribe
-            audio_path = Path(f"answer_{i}.wav")  # recorded answer
-            user_answer = self.transcribe_answer(audio_path)
+            # --- STT ---
+            user_answer = self.transcribe_answer(Path(f"answer_{i}.wav"))
 
-            # Evaluate
-            reference_answer = self.answer_bank.get(question, "")
-            evaluation = self.evaluate_answer(user_answer, reference_answer)
+            # --- Build response ---
+            response = {
+                "question_id": question_id,
+                "question_text": question_text,
+                "topic_name": topic_name,
+                "user_answer": user_answer,
+                "correct_answer": self.answer_bank.get(question_text, "")
+            }
+            responses.append(response)
 
-            results[question] = evaluation
+        # --- Evaluate all at once ---
+        evaluated_responses = self.evaluate_answers(responses)
 
-        print("\nInterview completed.")
-        return {"candidate_id": candidate_id, "results": results}
+        return {
+            "candidate_id": candidate_id,
+            "results": evaluated_responses
+        }

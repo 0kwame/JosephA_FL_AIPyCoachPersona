@@ -1,44 +1,12 @@
-import os
 from pathlib import Path
+import os
 from dotenv import load_dotenv
-from services.bot import GoogleGeminiInterviewBot
-from services.evaluation import EvaluationService
 from services.questionnaire import Questionnaire
-from services.interview import InterviewService
 from services.reporting import ReportService
+from services.audio import AudioService
+from services.bot import GoogleGeminiInterviewBot, GeminiEvaluator
+from services.evaluation import GeminiEvaluationStrategy
 
-import sounddevice as sd
-from scipy.io.wavfile import write
-import pygame
-
-
-# --- Helper: Record from mic ---
-def record_audio(filename: Path, duration=10, fs=16000):
-    """
-    Record audio from microphone and save as WAV.
-    """
-    print(f"🎙️ Recording for {duration} seconds... Speak now!")
-    audio = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype="int16")
-    sd.wait()
-    write(str(filename), fs, audio)  # Save as WAV
-    print(f"✅ Saved recording to {filename}")
-
-
-# --- Helper: Play audio file with pygame ---
-def play_audio(filepath: Path):
-    """
-    Play an audio file (mp3 or wav) using pygame.
-    """
-    try:
-        pygame.mixer.init()
-        pygame.mixer.music.load(str(filepath))
-        pygame.mixer.music.play()
-
-        # Wait until playback finishes
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
-    except Exception as e:
-        print(f"⚠️ Could not play audio {filepath}: {e}")
 
 def main():
     # Load environment variables from .env
@@ -56,9 +24,22 @@ def main():
     if api_key is None:
         raise ValueError("PROVIDER_API_KEY is not set in the environment.")
 
-    # Instantiate bot and interview service
-    bot = GoogleGeminiInterviewBot(api_key=api_key, answer_bank=answer_bank)
-    interview_service = InterviewService(bot=bot, answer_bank=answer_bank)
+    # Instantiate Gemini evaluator & strategy
+    gemini_evaluator = GeminiEvaluator(api_key=api_key)
+    gemini_strategy = GeminiEvaluationStrategy(
+        gemini_evaluator=gemini_evaluator,
+        answer_bank=answer_bank
+    )
+
+    # Instantiate bot with evaluation strategy
+    bot = GoogleGeminiInterviewBot(
+        evaluation_strategy=gemini_strategy,
+        answer_bank=answer_bank
+    )
+
+    # Instantiate services
+    report_service = ReportService()
+    audio = AudioService()
 
     # Ensure audio directory exists
     AUDIO_DIR = Path("media/audio")
@@ -70,68 +51,75 @@ def main():
 
     for idx, q in enumerate(questions_data, start=1):
         question_text = q["question_text"]
-        topic_name = q["topic_name"]
+        topic_name = q.get("topic_name", "Unknown Topic")
 
         # --- Print question ---
         print(f"\nQ{idx} [{topic_name}]: {question_text}")
 
         # --- TTS: read question aloud ---
         tts_path = AUDIO_DIR / f"{candidate_id}_question_{idx}.mp3"
-        interview_service.bot.ask_question(question_text, tts_path)
+        bot.ask_question(question_text, tts_path)
 
         if tts_path.exists():
-            play_audio(tts_path)  # 🔊 play question audio
+            audio.play(tts_path)
         else:
             print("⚠️ No audio file generated for this question.")
 
         # --- Record user answer ---
         answer_audio_path = AUDIO_DIR / f"{candidate_id}_answer_{idx}.wav"
-        record_audio(answer_audio_path, duration=10)  # record 10 sec answer
+        audio.record(answer_audio_path, duration=10)
 
         # --- STT: transcribe user answer ---
-        user_answer = interview_service.bot.transcribe_answer(answer_audio_path)
+        user_answer = bot.transcribe_answer(answer_audio_path)
         print(f"[STT] Transcribed answer: {user_answer}")
 
-        # --- Compare with reference answer ---
-        reference_answer = answer_bank[question_text]
-        evaluation = interview_service.bot.evaluate_answer(user_answer, reference_answer)
-
-        # --- Save response ---
+        # --- Build response (NO per-question evaluation here) ---
         user_responses.append({
             "question_id": q["question_id"],
             "question_text": question_text,
             "topic_name": topic_name,
             "user_answer": user_answer,
-            "correct_answer": reference_answer,
-            "evaluation": evaluation
+            "correct_answer": answer_bank[question_text],
         })
 
-        # --- Optional quit after 5 ---
+        # Optional quit after 5 questions
         if idx >= 5:
             cont = input("Press Enter to continue or type 'q' to quit: ")
             if cont.lower() == "q":
                 print("Exiting questionnaire...")
                 break
 
-    # Evaluate answers
-    evaluation_service = EvaluationService()
-    final_evaluation = evaluation_service.evaluate_answers(user_responses)
+    # --- Batch evaluation ---
+    final_evaluation = bot.evaluate_answers(user_responses)
+
+    # Build report with summary
+    total_score = sum(r.get("score", 0) for r in final_evaluation)
+    max_score_per_question = 5
+    report = {
+        "detailed_results": final_evaluation,
+        "summary": {
+            "total_score": total_score,
+            "max_possible_score": len(final_evaluation) * max_score_per_question,
+            "average_score_per_question": total_score / len(final_evaluation) if final_evaluation else 0,
+            "improvement_tips": []  # optionally add explanation tips
+        }
+    }
 
     # Display results
     print("\n\n📊 Questionnaire complete! Here are your results:")
-    for result in final_evaluation["detailed_results"]:
+    for result in report["detailed_results"]:
         print(f"Question: {result['question_text']}")
         print(f"Your Answer: {result['user_answer']}")
         print(f"Correct Answer: {result['correct_answer']}")
         print(f"Score: {result['score']}/5\n")
 
-    summary = final_evaluation["summary"]
+    summary = report["summary"]
     print(f"✨ Total Score: {summary['total_score']} out of {summary['max_possible_score']}")
     print(f"🌟 Average Score per Question: {summary['average_score_per_question']}/5")
 
     # Save report
-    report_service = ReportService()
-    report_service.generate_report(final_evaluation, file_format="json")
+    report_service.generate_report(report, file_format="json")
+
 
 if __name__ == "__main__":
     main()

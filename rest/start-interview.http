@@ -1,0 +1,7 @@
+### Start interview request
+POST http://localhost:8000/start-interview
+Content-Type: application/json
+
+{
+  "candidate_id": "1048"
+}
