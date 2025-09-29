@@ -83,18 +83,24 @@ def run_questionnaire(questions):
     random.shuffle(questions)
     answers = []
 
-    for idx, q in enumerate(questions, start=1):
-        print(f"Q{idx} [{q['topic_name']}]: {q['question_text']}")
-        answer = input("Your answer: ")
+    for idx, question in enumerate(questions, start=1):
+        print(f"Q{idx} [{question['topic_name']}]: {question['question_text']}")
+
+        # Require a non-empty answer (reprompt if user just presses Enter)
+        while True:
+            answer = input("Your answer: ")
+            if answer.strip():
+                break
+            print("Please provide an answer (cannot be empty).")
 
         # Compute Levenshtein distance
-        distance = calculate_score(answer, q["answer_text"])
+        distance = calculate_score(answer, question["answer_text"])
 
         answers.append({
-            "question_id": q["question_id"],
-            "question_text": q["question_text"],
+            "question_id": question["question_id"],
+            "question_text": question["question_text"],
             "user_answer": answer,
-            "correct_answer": q["answer_text"],
+            "correct_answer": question["answer_text"],
             "levenshtein_distance": distance
         })
 
@@ -103,16 +109,19 @@ def run_questionnaire(questions):
 
         # Stop after at least 5 questions if user quits
         if idx >= 5:
-            cont = input("Press Enter to continue or type 'q' to quit: ")
-            if cont.lower() == "q":
+            continue_response = input("Press Enter to continue or type 'q' to quit: ")
+            if continue_response.lower() == "q":
                 print("Exiting questionnaire...")
                 break
 
     return answers
 
 
-if __name__ == "__main__":
+def main():
     print("Loading questions from the repository...\n")
     questionnaire = Questionnaire()
     questions = questionnaire.get_all_questions()
     run_questionnaire(questions)
+
+if __name__ == "__main__":
+    main()
