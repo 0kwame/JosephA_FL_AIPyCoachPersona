@@ -14,8 +14,8 @@ def run_questionnaire(questions):
     all_questions = []
     for section in questions:
         topic = section.get("topic", "Unknown Topic")
-        for q in section.get("questions", []):
-            all_questions.append((topic, q))
+        for question in section.get("questions", []):
+            all_questions.append((topic, question))
 
     # Shuffle questions randomly
     random.shuffle(all_questions)
@@ -23,15 +23,22 @@ def run_questionnaire(questions):
 
     for idx, (topic, question) in enumerate(all_questions, start=1):
         print(f"Q{idx} ({topic}): {question}")
-        answer = input("Your answer: ")
+
+        # Require a non-empty answer (reprompt if user just presses Enter)
+        while True:
+            answer = input("Your answer: ")
+            if answer.strip():
+                break
+            print("Please provide an answer (cannot be empty).")
+
         answers.append({"question": question, "topic": topic, "answer": answer})
 
         print(f"✅ Recorded your answer: {answer}\n")
 
         # Enforce minimum of 5 before quitting
         if idx >= 5:
-            cont = input("Press Enter to continue or type 'q' to quit: ")
-            if cont.lower() == "q":
+            continue_response = input("Press Enter to continue or type 'q' to quit: ")
+            if continue_response.lower() == "q":
                 print("Exiting questionnaire...")
                 break
 
