@@ -37,9 +37,12 @@ def run_questionnaire(questions):
 
     return answers
 
-
-if __name__ == "__main__":
+def main():
     print("Loading questions from the repository...\n")
     questionnaire = Questionnaire()
     questions = questionnaire.get_all_questions()
     run_questionnaire(questions)
+
+
+if __name__ == "__main__":
+    main()
