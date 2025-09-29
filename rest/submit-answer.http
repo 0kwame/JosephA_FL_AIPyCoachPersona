@@ -31,7 +31,7 @@ Content-Type: application/json
 
 # Question 5
 {
-  "session_id": "fb34e5c0-8788-400b-8c87-2befde4f4fb6",
+  "session_id": "8cce6120-7394-4904-833d-41b257bf30c4",
   "question_id": "q1",
   "answer": "Python's basic data types include int, float, str, bool, list, tuple, set, and dict. They differ in mutability, usage, and supported operations."
 }
