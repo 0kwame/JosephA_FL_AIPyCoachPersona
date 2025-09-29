@@ -1,0 +1,142 @@
+[
+  {
+    "topic": "Basics of Python Syntax and Core Concepts",
+    "questions": [
+      "What are Python’s basic data types, and how do they differ?",
+      "What is the difference between expressions and statements in Python?",
+      "How does indentation affect code execution in Python?",
+      "What is dynamic typing, and how does Python handle variable types?",
+      "What are Python keywords, and can they be used as identifiers?"
+    ]
+  },
+  {
+    "topic": "Variables and Data Types",
+    "questions": [
+      "How do you declare and assign variables in Python?",
+      "What is the difference between mutable and immutable objects?",
+      "What is type casting, and how do you perform it in Python?",
+      "Explain the difference between shallow copy and deep copy.",
+      "What is None in Python, and how is it different from 0 or False?"
+    ]
+  },
+  {
+    "topic": "Conditionals and Loops",
+    "questions": [
+      "What is the syntax for an if-elif-else statement in Python?",
+      "How does a for loop differ from a while loop?",
+      "What are break, continue, and pass statements used for?",
+      "How do you use range() in loops, and what arguments does it accept?",
+      "What is the difference between an infinite loop and a finite loop?"
+    ]
+  },
+  {
+    "topic": "Functions and Scope",
+    "questions": [
+      "How do you define a function in Python?",
+      "What is the difference between local and global scope?",
+      "What are *args and **kwargs used for?",
+      "What is a lambda function, and when should you use it?",
+      "Explain recursion with an example in Python."
+    ]
+  },
+  {
+    "topic": "Lists, Tuples, Sets, Dictionaries",
+    "questions": [
+      "What are the differences between lists and tuples?",
+      "How do sets handle duplicate elements?",
+      "What are dictionary keys restricted to in Python?",
+      "How do you iterate over a dictionary’s keys and values?",
+      "Give an example use case for each: list, tuple, set, dictionary."
+    ]
+  },
+  {
+    "topic": "Working with Functions and Modules",
+    "questions": [
+      "How do you import a specific function from a module?",
+      "What is the difference between import module and from module import?",
+      "How do you install external Python packages?",
+      "What are Python’s built-in modules commonly used for?",
+      "How can modular programming improve project maintainability?"
+    ]
+  },
+  {
+    "topic": "Error and Exception Handling",
+    "questions": [
+      "What is the difference between syntax errors and exceptions?",
+      "How do you use try-except blocks in Python?",
+      "What is the role of finally in exception handling?",
+      "What is a custom exception, and how do you create one?",
+      "When should you use raise in Python?"
+    ]
+  },
+  {
+    "topic": "File Operations and I/O",
+    "questions": [
+      "How do you read a file line by line in Python?",
+      "What is the difference between read(), readline(), and readlines()?",
+      "How do you write text into a file without overwriting existing content?",
+      "What is a context manager (with statement), and why is it preferred?",
+      "What exceptions should you handle in file operations?"
+    ]
+  },
+  {
+    "topic": "CSV and JSON File Manipulation",
+    "questions": [
+      "How do you read data from a CSV file in Python?",
+      "How do you convert a Python dictionary into a JSON string?",
+      "What is the difference between json.load() and json.loads()?",
+      "How do you write data to a CSV file using the csv module?",
+      "Give a real-world use case for working with JSON in Python."
+    ]
+  },
+  {
+    "topic": "Command-line Input/Output",
+    "questions": [
+      "How do you accept user input in Python?",
+      "What is the difference between input() and sys.argv?",
+      "How do you handle command-line arguments with argparse?",
+      "What happens if the user enters invalid input?",
+      "How do you print formatted output using f-strings?"
+    ]
+  },
+  {
+    "topic": "Data Structures and Algorithms (Intro)",
+    "questions": [
+      "What is the difference between stacks and queues?",
+      "How do you implement a stack using a list?",
+      "What are Python’s built-in data structures for queue operations?",
+      "What is the time complexity of searching for an element in a list?",
+      "How would you implement a linked list in Python?"
+    ]
+  },
+  {
+    "topic": "Hash Tables and Dictionaries",
+    "questions": [
+      "Why are Python dictionaries considered hash tables?",
+      "What happens if two dictionary keys hash to the same value?",
+      "How do you check if a key exists in a dictionary?",
+      "What is the difference between dict.get() and dict[] access?",
+      "Explain the role of hashing in dictionary lookups."
+    ]
+  },
+  {
+    "topic": "Sorting Algorithms",
+    "questions": [
+      "What sorting algorithm does Python’s sort() use internally?",
+      "How do sorted() and list.sort() differ?",
+      "What is the time complexity of Python’s built-in sort?",
+      "How do you sort a list of dictionaries by a key?",
+      "How can you implement bubble sort in Python?"
+    ]
+  },
+  {
+    "topic": "Recursion Basics",
+    "questions": [
+      "What is recursion, and when should you use it?",
+      "What is a base case in recursion?",
+      "Write a recursive function to compute factorial.",
+      "How does recursion differ from iteration?",
+      "What are the drawbacks of using recursion in Python?"
+    ]
+  }
+]
