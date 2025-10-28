@@ -1,0 +1,14 @@
+[project]
+name = "joseph-a-ai-py-coach-persona"
+version = "0.1.0"
+description = "Python Accelerator Program - AI Coach Persona"
+readme = "README.md"
+requires-python = ">=3.9"
+
+# If you want dependencies managed here instead of requirements.txt
+dependencies = [
+    "pytest",
+]
+
+[tool.uv]
+# optional uv-specific config

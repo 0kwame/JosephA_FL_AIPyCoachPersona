@@ -1,0 +1,77 @@
+{
+  "dataset_id": "python_basics_v1",
+  "topics": [
+    {
+      "topic_id": "t1",
+      "topic": "Basics of Python Syntax and Core Concepts",
+      "qa_pairs": [
+        {
+          "question_id": "q1",
+          "question": "What are Python’s basic data types, and how do they differ?",
+          "answer_id": "a1",
+          "answer": "Python’s basic data types include int, float, str, bool, list, tuple, set, and dict. They differ in mutability, usage, and supported operations."
+        },
+        {
+          "question_id": "q2",
+          "question": "What is the difference between expressions and statements in Python?",
+          "answer_id": "a2",
+          "answer": "An expression produces a value (e.g., 2 + 3), while a statement performs an action such as assignment or control flow."
+        },
+        {
+          "question_id": "q3",
+          "question": "How does indentation affect code execution in Python?",
+          "answer_id": "a3",
+          "answer": "Indentation defines code blocks in Python. Incorrect indentation raises an IndentationError."
+        },
+        {
+          "question_id": "q4",
+          "question": "What is dynamic typing, and how does Python handle variable types?",
+          "answer_id": "a4",
+          "answer": "Python uses dynamic typing, meaning types are inferred at runtime without explicit declaration."
+        },
+        {
+          "question_id": "q5",
+          "question": "What are Python keywords, and can they be used as identifiers?",
+          "answer_id": "a5",
+          "answer": "Keywords are reserved words (e.g., if, def, class) and cannot be used as variable or function names."
+        }
+      ]
+    },
+    {
+      "topic_id": "t2",
+      "topic": "Variables and Data Types",
+      "qa_pairs": [
+        {
+          "question_id": "q6",
+          "question": "How do you declare and assign variables in Python?",
+          "answer_id": "a6",
+          "answer": "Variables are created by assignment, e.g., x = 5. No explicit type declaration is required."
+        },
+        {
+          "question_id": "q7",
+          "question": "What is the difference between mutable and immutable objects?",
+          "answer_id": "a7",
+          "answer": "Mutable objects like lists and dicts can be modified in place, while immutable objects like strings, ints, and tuples cannot."
+        },
+        {
+          "question_id": "q8",
+          "question": "What is type casting, and how do you perform it in Python?",
+          "answer_id": "a8",
+          "answer": "Type casting converts one type to another using functions like int(), float(), str()."
+        },
+        {
+          "question_id": "q9",
+          "question": "Explain the difference between shallow copy and deep copy.",
+          "answer_id": "a9",
+          "answer": "A shallow copy copies references of nested objects, while a deep copy duplicates all nested objects recursively."
+        },
+        {
+          "question_id": "q10",
+          "question": "What is None in Python, and how is it different from 0 or False?",
+          "answer_id": "a10",
+          "answer": "None means no value. Unlike 0 or False, it is a distinct object of type NoneType."
+        }
+      ]
+    }
+  ]
+}
